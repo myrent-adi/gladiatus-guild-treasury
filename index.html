@@ -57,4 +57,5 @@ async function refresh(){const b=$('refreshBtn');b.disabled=true;$('statusTitle'
 if(!sheetUrl){$('submissionStatus').textContent='Setup required: publish the included Apps Script and set its URL in settings.js.';}
 $('search').addEventListener('input',render);$('filter').addEventListener('change',render);$('refreshBtn').addEventListener('click',refresh);for(const id of ['price','fortune','discount'])$(id).addEventListener('input',calc);calc();refresh();setInterval(refresh,60000);
 </script>
+  <script src="./guild-bank-display.js" defer></script>
 </body></html>
