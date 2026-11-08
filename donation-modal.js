@@ -43,7 +43,7 @@
     function show(state, message) {
       modal.hidden = false;
       const saving = state === 'sending';
-      title.textContent = saving ? 'Sending donation…' : state === 'success' ? 'Donation sent successfully!' : state === 'error' ? 'Submission failed' : 'Confirmation unavailable';
+      title.textContent = saving ? 'Sending donation…' : state === 'success' ? 'Donation sent successfully!' : state === 'error' ? 'Submission failed' : 'Donation request sent';
       detail.textContent = message;
       icon.replaceChildren();
       if (saving) {
@@ -79,7 +79,7 @@
       waiting = true;
       previousFocus = document.activeElement;
       show('sending', 'Saving your donation to the guild ledger. Please keep this page open.');
-      timer = setTimeout(() => finish('unknown', 'Your request may have been sent, but the website did not receive confirmation. Ask The.T to check Google Sheets before submitting again.'), 14000);
+      timer = setTimeout(() => finish('unknown', 'The donation request was submitted for review. The.T will check and approve it in Google Sheets. Receipt has not yet been confirmed, so please do not submit it again.'), 14000);
     }, true);
 
     // A success popup is shown ONLY after receiving a positive message from the Apps Script iframe.
@@ -87,7 +87,7 @@
       if (!waiting || event.source !== frame.contentWindow) return;
       const data = event.data;
       if (!data || data.type !== 'gladiatus-donation-result') return;
-      if (data.ok === true) finish('success', 'Your donation was received and is awaiting The.T approval.');
+      if (data.ok === true) finish('success', 'Your donation has been saved and is awaiting review and approval by The.T.');
       else finish('error', data.message || 'Google Sheets did not accept the donation.');
     });
   }
