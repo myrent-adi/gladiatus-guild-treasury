@@ -56,6 +56,82 @@ html,body{max-width:100%;overflow-x:clip}
  td,th{padding:10px 8px}
 }
 @media(max-width:360px){.stats{grid-template-columns:minmax(0,1fr)}.stats .stat:first-child{grid-column:auto}}
+
+/* Narrow-phone optimization: sections reflow; only the leaderboard itself scrolls. */
+html{overflow-x:hidden}
+body{overflow-x:hidden}
+.wrap{width:100%;min-width:0}
+.goal-head>*{min-width:0}
+@media(max-width:760px){
+ .wrap{padding:10px 12px 32px}
+ .grid{display:flex;flex-direction:column;gap:0}
+ .grid>aside,.grid>div{width:100%;min-width:0}
+ .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stats .stat:first-child{grid-column:1/-1}
+ .goal-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .goal-results{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .goal-results .goal-tile:first-child{grid-column:1/-1}
+ .stat b{overflow-wrap:anywhere}
+ .goal-tile strong{overflow-wrap:anywhere}
+ .box{max-width:100%}
+ .scroll{overflow-x:auto;overscroll-behavior-x:contain}
+}
+@media(max-width:520px){
+ .wrap{padding:8px 9px 26px}
+ .hero{padding:20px 16px}
+ .hero h1{font-size:clamp(32px,9.2vw,43px)}
+ .stats{gap:8px}
+ .stat{padding:13px 12px}
+ .stat b{font-size:clamp(21px,6vw,29px);overflow-wrap:normal;word-break:normal}
+ .stats .stat:first-child b{font-size:clamp(25px,7.5vw,34px)}
+ .stat label{line-height:1.4}
+ .goal-fields,.goal-results{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}
+ .goal-results .goal-tile:first-child{grid-column:auto}
+ .goal-head h2{font-size:21px;line-height:1.2}
+ .goal-tag{font-size:11px}
+ .goal-tile strong{font-size:clamp(19px,5.6vw,26px);overflow-wrap:normal;word-break:normal}
+ .box{padding:14px}
+ .bank-metrics{grid-template-columns:minmax(0,1fr)}
+ .toolbar input,.toolbar select{width:100%;max-width:100%}
+ .entry{overflow-wrap:anywhere}
+ input,select{min-width:0;width:100%;font-size:16px}
+ #accountBox{display:none}
+}
+
+/* Streamlined public site: retain hidden legacy controls in DOM for JS compatibility. */
+.top, .status, #accountBox, #memberForm, #feeForm {display:none!important}
+#accountBox, #memberForm, #feeForm {visibility:hidden}
+/* Hide crossed-out panels while keeping their script hooks available. */
+#memberPanel, #feeEntryPanel, #guildRulesPanel {display:none!important}
+/* Responsive leaderboard cards, no side-scrolling on narrow phones. */
+@media (max-width:760px){
+ .grid{display:flex; flex-direction:column;}
+ .grid > div{order:1;width:100%}
+ .grid > aside{order:2;width:100%}
+ .wrap{max-width:100%;width:100%;padding:9px 10px 26px}
+ .hero{border-top:1px solid #8b673d}
+ .stats .stat b{font-size:clamp(21px,5vw,30px);overflow-wrap:anywhere}
+ .scroll{overflow-x:visible;width:100%}
+ #guildLeaderboardTable{min-width:0;width:100%;display:block}
+ #guildLeaderboardTable thead{display:none}
+ #guildLeaderboardTable tbody{display:grid;grid-template-columns:1fr;gap:8px}
+ #guildLeaderboardTable tr{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:4px 10px;padding:12px 10px;border:1px solid #675033;background:#1d160f;align-items:center;min-width:0}
+ #guildLeaderboardTable td{border:0;padding:1px 0;min-width:0;text-align:left;font-size:13px;overflow-wrap:anywhere}
+ #guildLeaderboardTable td:nth-child(1){grid-column:1;grid-row:1 / 3}
+ #guildLeaderboardTable td:nth-child(2){grid-column:2;grid-row:1;font-size:15px;font-weight:700;color:#f0c77e}
+ #guildLeaderboardTable td:nth-child(3){grid-column:2;grid-row:2;color:#bda786;font-size:11px}
+ #guildLeaderboardTable td:nth-child(4){grid-column:3;grid-row:1;text-align:right;font-size:14px;font-weight:700;color:#f7d494;font-variant-numeric:tabular-nums}
+ #guildLeaderboardTable td:nth-child(5){grid-column:3;grid-row:2;text-align:right;color:#bda786;font-size:11px}
+ #guildLeaderboardTable td:nth-child(5)::after{content:' donations'}
+}
+@media (max-width:390px){
+ #guildLeaderboardTable tr{grid-template-columns:35px minmax(0,1fr);gap:4px 8px}
+ #guildLeaderboardTable td:nth-child(1){grid-column:1;grid-row:1 / 4}
+ #guildLeaderboardTable td:nth-child(2){grid-column:2;grid-row:1}
+ #guildLeaderboardTable td:nth-child(3){grid-column:2;grid-row:2}
+ #guildLeaderboardTable td:nth-child(4){grid-column:2;grid-row:3;text-align:left}
+ #guildLeaderboardTable td:nth-child(5){grid-column:2;grid-row:4;text-align:left}
+}
 </style>
 <!-- Static edition: no database, no external credentials. -->
 </head>
@@ -66,7 +142,7 @@ html,body{max-width:100%;overflow-x:clip}
 <section class="stats" aria-label="Guild statistics"><div class="stat"><label>Total Gold Donated</label><b id="totalGold">0</b><span class="soft">gold</span></div><div class="stat"><label>Active Guild Members · No RIP</label><b id="totalMembers">0</b></div><div class="stat"><label>Recorded Donations</label><b id="totalDonations">0</b></div><div class="stat"><label>Bank Fee Income</label><b id="totalFees">0</b><span class="soft">gold · separate from donations</span></div></section>
 <section class="box" id="forumGoal" aria-label="Forum building goal calculator">
 <div class="goal-head"><h2>🏛 Forum Gladiatorius · Level 43 Goal</h2><span class="goal-tag">⚔ 23 NOV 2026 EVENT</span></div>
-<p>Plan how much gold the guild needs for the next forum upgrade. Values below are from your 8 November screenshot; update them as the in-game numbers change.</p>
+<p>Track the whole guild's gold for the next upgrade. No individual donation targets. Event price is an estimate; confirm the final in-game price.</p>
 <div class="goal-fields">
 <div><label class="field" for="forumPrice">Current displayed upgrade cost (gold)</label><input id="forumPrice" type="number" min="0" step="1" value="94911994662"></div>
 <div><label class="field" for="forumFortune">Current guild fortune in game (gold)</label><input id="forumFortune" type="number" min="0" step="1" value="24024468627"></div>
@@ -78,22 +154,21 @@ html,body{max-width:100%;overflow-x:clip}
 <div class="goal-tile"><span>Guild fortune available</span><strong id="forumBank">—</strong></div>
 </div>
 <div class="goal-line"><strong>Progress toward event price</strong><span id="forumPercent">0%</span></div><div class="goal-progress" role="progressbar" aria-label="Gold collected toward forum goal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="forumProgress"><div id="forumProgressBar"></div></div>
-<div class="goal-info" style="margin-top:12px"><div>Gold still needed without extra event discount<strong id="forumWithoutEvent">—</strong></div><div>Equal share per active guild member<strong id="forumShare">—</strong></div><div>Estimated event savings vs current price<strong id="forumSaved">—</strong></div></div>
-<div class="note goal-warning"><strong>How this estimate works:</strong> the extra 35% is calculated on the <em>currently displayed</em> forum price (multiplicative discount). Gladiatus may combine discounts differently. Check the final in-game price on 23 November before upgrading. Guild fortune is entered separately: historic donations in this ledger are <strong>not</strong> added again to the bank amount.</div>
+
 </section>
 <main class="grid"><aside>
-<section class="box" id="accountBox"><h2>Guild Account</h2><div id="authArea"><label class="field" for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="gladiator@example.com"><label class="field" for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="Your password"><div class="row"><button id="signIn" class="primary" type="button">Sign In</button><button id="register" type="button">Register</button></div></div><div id="signedInArea" hidden><p id="accountLabel"></p><button id="signOut" type="button">Sign Out</button></div><p class="hint" id="authHelp">In preview mode, sign-in is disabled. Add your Supabase settings to enable shared access.</p><div id="message" role="status" aria-live="polite"></div></section>
-<section class="box"><h2>Add Guild Member</h2><form id="memberForm"><label class="field" for="memberName">Gladiator Name</label><input id="memberName" maxlength="45" placeholder="e.g. Maximus" required><button class="primary full" id="addMember" type="submit">+ Add Member</button></form><p class="hint">Signed-in members can add gladiators. RIP members are excluded from the initial roster.</p></section>
-<section class="box"><h2>Record Donation</h2><form id="donationForm"><label class="field" for="memberSelect">Gladiator</label><select id="memberSelect" required><option value="">Select a member</option></select><div id="memberRunningTotal" class="note" role="status" aria-live="polite">Select a gladiator to see their total donations.</div><label class="field" for="amount">Gold Amount</label><input id="amount" type="number" min="1" max="999999999999999" step="1" inputmode="numeric" placeholder="e.g. 500000" required><label class="field" for="donationDate">Donation Date</label><input id="donationDate" type="date" required><label class="field" for="donationNote">Note (optional)</label><input id="donationNote" maxlength="100" placeholder="e.g. building fund"><button class="primary full" id="addDonation" type="submit">+ Add Donation to Total</button></form><p class="hint">You can record donations for the same gladiator as many times as needed. Every entry is saved separately and added to their lifetime total.</p></section>
-<section class="box"><h2>🏦 Record Bank Fee Income</h2><p class="hint">Gold earned by the guild bank from player commissions / fees. <strong>Not a player donation.</strong></p><form id="feeForm"><label class="field" for="feeAmount">Fee income (gold)</label><input id="feeAmount" type="number" min="1" max="999999999999999" step="1" required placeholder="e.g. 250000"><label class="field" for="feeDate">Date</label><input id="feeDate" type="date" required><label class="field" for="feeNote">Description (optional)</label><input id="feeNote" maxlength="100" placeholder="e.g. bank commissions"><button class="primary full" id="addFee" type="submit">+ Add Bank Fee Income</button></form><p class="hint">Record only the newly earned fee amount, not the entire bank balance.</p></section>
-<section class="box"><h2>Guild Rules</h2><p class="hint">Anyone can view the published totals. Without a database, edits on this device do not automatically appear to other guild members. Publish an updated HTML file to update the public website.</p><p class="hint">Donations are entered manually; this is not connected to Gameforge accounts or game data. The imported donation dates were not provided, so 8 November 2026 is used as the recording date.</p><div class="note" id="previewNote">🏛 Preview: Active -Empire- [T-H-E] members are preloaded. RIP members are excluded. No donations or commission fees have been invented. Your changes are local until Supabase is connected.</div><button id="saveWebsite" type="button" class="primary full">⬇ Export Ledger Backup (JSON)</button>
+<section class="box" id="accountBox"><h2>Guild Account</h2><div id="authArea"><label class="field" for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="gladiator@example.com"><label class="field" for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="Your password"><div class="row"><button id="signIn" class="primary" type="button">Sign In</button><button id="register" type="button">Register</button></div></div><div id="signedInArea" hidden><p id="accountLabel"></p><button id="signOut" type="button">Sign Out</button></div><p class="hint" id="authHelp">Static edition: donations are stored in this browser; publish a new HTML file to update the public totals.</p><div id="message" role="status" aria-live="polite"></div></section>
+<section class="box" id="memberPanel"><h2>Add Guild Member</h2><form id="memberForm"><label class="field" for="memberName">Gladiator Name</label><input id="memberName" maxlength="45" placeholder="e.g. Maximus" required><button class="primary full" id="addMember" type="submit">+ Add Member</button></form><p class="hint">Signed-in members can add gladiators. RIP members are excluded from the initial roster.</p></section>
+<section class="box"><h2>Record Donation</h2><div id="visibleMessage" role="status" aria-live="polite"></div><form id="donationForm"><label class="field" for="memberSelect">Gladiator</label><select id="memberSelect" required><option value="">Select a member</option></select><div id="memberRunningTotal" class="note" role="status" aria-live="polite">Select a gladiator to see their total donations.</div><label class="field" for="amount">Gold Amount</label><input id="amount" type="number" min="1" max="999999999999999" step="1" inputmode="numeric" placeholder="e.g. 500000" required><label class="field" for="donationDate">Donation Date</label><input id="donationDate" type="date" required><label class="field" for="donationNote">Note (optional)</label><input id="donationNote" maxlength="100" placeholder="e.g. building fund"><button class="primary full" id="addDonation" type="submit">+ Add Donation to Total</button></form><p class="hint">You can record donations for the same gladiator as many times as needed. Every entry is saved separately and added to their lifetime total.</p></section>
+<section class="box" id="feeEntryPanel"><h2>🏦 Record Bank Fee Income</h2><p class="hint">Gold earned by the guild bank from player commissions / fees. <strong>Not a player donation.</strong></p><form id="feeForm"><label class="field" for="feeAmount">Fee income (gold)</label><input id="feeAmount" type="number" min="1" max="999999999999999" step="1" required placeholder="e.g. 250000"><label class="field" for="feeDate">Date</label><input id="feeDate" type="date" required><label class="field" for="feeNote">Description (optional)</label><input id="feeNote" maxlength="100" placeholder="e.g. bank commissions"><button class="primary full" id="addFee" type="submit">+ Add Bank Fee Income</button></form><p class="hint">Record only the newly earned fee amount, not the entire bank balance.</p></section>
+<section class="box" id="guildRulesPanel"><h2>Guild Rules</h2><p class="hint">Anyone can view the published totals. Without a database, edits on this device do not automatically appear to other guild members. Publish an updated HTML file to update the public website.</p><p class="hint">Donations are entered manually; this is not connected to Gameforge accounts or game data. The imported donation dates were not provided, so 8 November 2026 is used as the recording date.</p><div class="note" id="previewNote">🏛 Preview: Active -Empire- [T-H-E] members are preloaded. RIP members are excluded. No donations or commission fees have been invented. Your changes are local until Supabase is connected.</div><button id="saveWebsite" type="button" class="primary full">⬇ Export Ledger Backup (JSON)</button>
 <button id="resetPreview" type="button" class="danger full">Restore Published Opening Ledger</button></section>
 </aside><div>
-<section class="box"><div class="toolbar"><h2>Guild Donation Leaderboard</h2><input id="search" type="search" placeholder="Search gladiators..." aria-label="Search gladiators"></div><div class="scroll"><table><thead><tr><th>Rank</th><th>Gladiator</th><th>Guild Rank</th><th>Total Gold</th><th>Donations</th></tr></thead><tbody id="leaderboard"></tbody></table></div><div class="empty" id="emptyMembers" hidden>No members have been added yet.</div></section>
+<section class="box"><div class="toolbar"><h2>Guild Donation Leaderboard</h2><input id="search" type="search" placeholder="Search gladiators..." aria-label="Search gladiators"></div><div class="scroll"><table id="guildLeaderboardTable"><thead><tr><th>Rank</th><th>Gladiator</th><th>Guild Rank</th><th>Total Gold</th><th>Donations</th></tr></thead><tbody id="leaderboard"></tbody></table></div><div class="empty" id="emptyMembers" hidden>No members have been added yet.</div></section>
 <section class="box" id="bankOverview"><h2>🏦 Guild Bank · Separate Accounting</h2><div class="bank-metrics"><div><small>Current in-game guild bank (manual snapshot)</small><strong id="bankSnapshot">0</strong></div><div><small>Total recorded bank commission income</small><strong id="bankFeeTotal">0</strong></div></div><div class="bank-note">The bank balance is entered from Gladiatus in <b>Current guild fortune in game</b> above. Fee income and player donations are tracked separately. Neither is added to that balance automatically, because the in-game balance may already include both. This avoids double-counting.</div></section>
 <section class="box"><div class="toolbar"><h2>Bank Commission History</h2></div><div id="feeHistory"></div><div class="empty" id="emptyFees" hidden>No bank fee income recorded yet.</div></section>
 <section class="box"><div class="toolbar"><h2>Donation History</h2><select id="filterMember" aria-label="Filter donation history"><option value="">All gladiators</option></select></div><div id="history"></div><div id="emptyHistory" class="empty" hidden>No donations recorded yet.</div></section>
-</div></main><footer>Public values are a published snapshot; local changes are not shared automatically · Independent fan-made guild ledger · Not affiliated with Gameforge or Gladiatus · No automated game access</footer>
+</div></main><footer>Fan-made Gladiatus guild ledger · Local changes are private until the published file is updated · Not affiliated with Gameforge</footer>
 </div>
 <script type="module">
 const cfg=window.GLADIATUS_CONFIG||{};
@@ -101,7 +176,7 @@ const cloud=false; // Public static edition; edits are local until ledger is rep
 const $=id=>document.getElementById(id);
 const fmt=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(n);
 const dateLocal=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
-const escMsg=(msg,isError=false)=>{const el=$('message');el.textContent=msg;el.className=isError?'alert':'success'};
+const escMsg=(msg,isError=false)=>{const el=$('message');el.textContent=msg;el.className=isError?'alert':'success';const v=document.getElementById('visibleMessage');if(v){v.textContent=msg;v.className=isError?'alert':'success'}};
 const guildName='-Empire- [T-H-E]';
 const key='gladiatus-guild-treasury-static-v1';
 const guildRoster=[{"name":"SirNuma","rank":"Master"},{"name":"The.T","rank":"Admin"},{"name":"Mc.:susi23","rank":"Admin"},{"name":"Eolo","rank":"Admin"},{"name":"[GOC]Consul","rank":"Admin"},{"name":"Canto.","rank":"Admin"},{"name":"Phi965t","rank":"Admin"},{"name":"[THE]-Ange-","rank":"Admin"},{"name":"Arghantas","rank":"Admin"},{"name":"psymimi","rank":"Admin"},{"name":"HH_Titanium_HH","rank":"Admin"},{"name":"HH_MadKing_THE","rank":"Admin"},{"name":"Usasz11.","rank":"Admin"},{"name":"THE_MadMax_THE","rank":"Admin"},{"name":"ZimaBlue","rank":"Admin"},{"name":"[THE]ExorcisT","rank":"Admin"},{"name":"Markus1","rank":"Admin"},{"name":"Aveloca","rank":"Admin"},{"name":"•Yggdrasill•","rank":"Admin"},{"name":"satana_satana2.","rank":"Admin"},{"name":"ElPriest.","rank":"Admin"},{"name":"satana_satan22.","rank":"Admin"},{"name":"rock","rank":"Tribun"},{"name":"Neus_Gesicht","rank":"Tribun"},{"name":"Raveniacus","rank":"Tribun"},{"name":"Syndicato","rank":"Tribun"},{"name":"_Melkor_","rank":"Tribun"},{"name":"BigAnubis","rank":"Tribun"},{"name":"testobolan","rank":"Tribun"},{"name":"Bigoune","rank":"Tribun"},{"name":"Anonymous.","rank":"Tribun"},{"name":"^^WhiteTiger^^","rank":"Tribun"},{"name":"Yogi","rank":"Tribun"},{"name":"Mr.Gladiatus","rank":"Tribun"},{"name":"THRULL","rank":"Tribun"},{"name":"FUNES","rank":"Tribun"},{"name":"Valkyrja","rank":"Tribun"},{"name":"Ashuuuuu","rank":"Tribun"},{"name":"[T-H-E]Noahoba","rank":"Tribun"},{"name":"EirikrBlooox","rank":"Tribun"},{"name":"xRax","rank":"Tribun"},{"name":"Bozo","rank":"Tribun"},{"name":"Connavar,","rank":"Tribun"},{"name":"HH_Roberto","rank":"Tribun"},{"name":"HH_Lovi_HH","rank":"Tribun"},{"name":"THE_Armorachia","rank":"Tribun"},{"name":"Witcher_hun","rank":"Tribun"},{"name":"--Spartacus--","rank":"Tribun"},{"name":"pontAz","rank":"Tribun"},{"name":"DaveBautista","rank":"Tribun"},{"name":"CaesarPoco","rank":"Tribun"},{"name":"[ANGELS]Newboi.","rank":"Tribun"},{"name":"THE_RockShakur","rank":"Tribun"},{"name":"Mezdo","rank":"Tribun"},{"name":"P12_MontBlanc","rank":"Tribun"},{"name":"HH_Berserker_HH","rank":"Tribun"},{"name":"GumboJack","rank":"Tribun"},{"name":"HH_isphan_HH","rank":"Tribun"},{"name":"Mirtam","rank":"Tribun"},{"name":"[THE]Wormus_s30","rank":"Tribun"},{"name":"HH_szappan","rank":"Tribun"},{"name":"HH.York74.HH","rank":"Tribun"},{"name":"Alfi","rank":"Tribun"},{"name":"Lukyl","rank":"Tribun"},{"name":"marcusandreas","rank":"Tribun"},{"name":"RINGO","rank":"Tribun"},{"name":"gio73","rank":"Tribun"},{"name":"PeterParker","rank":"Tribun"},{"name":"Ogre","rank":"Tribun"},{"name":"Logan529","rank":"Tribun"},{"name":"Buljooki_UNIjb","rank":"Tribun"},{"name":"Grim_Reaper","rank":"Tribun"},{"name":"Nopherus","rank":"Tribun"},{"name":"BabadoRX","rank":"Tribun"},{"name":"Travellerr","rank":"Tribun"},{"name":"francescosette7","rank":"Tribun"},{"name":"LegolasWarrior","rank":"Tribun"},{"name":"Bubu3elette","rank":"Tribun"},{"name":"mangusta","rank":"Tribun"},{"name":"Alupigus","rank":"Tribun"},{"name":"Venace","rank":"Tribun"},{"name":"Wisdom","rank":"Tribun"},{"name":"SchwanzusLongus","rank":"General"},{"name":"Gorthaur","rank":"Senator"},{"name":"Peng","rank":"Senator"},{"name":"Starship","rank":"Senator"},{"name":"_Big-Roberto_","rank":"Senator"},{"name":"Alvius","rank":"Senator"},{"name":"Zaro","rank":"Senator"},{"name":"ISpikeSpiegel","rank":"Senator"},{"name":"Dey","rank":"Senator"},{"name":"eraz","rank":"Senator"},{"name":"Nagyherceg1","rank":"Senator"},{"name":"Calvin_Klein,","rank":"Senator"},{"name":"Viento-Frio","rank":"Senator"},{"name":"Mangos","rank":"Senator"},{"name":"ThorinOak","rank":"Senator"},{"name":"Itheree","rank":"Senator"},{"name":"Aletheia","rank":"Senator"}];
@@ -115,14 +190,13 @@ try{const saved=JSON.parse(localStorage.getItem(forumGoalKey));if(saved&&typeof 
 function calcForumGoal(){
  const price=Number($('forumPrice').value),fortune=Number($('forumFortune').value),discount=Number($('forumDiscount').value);
  if(!Number.isSafeInteger(price)||price<0||!Number.isSafeInteger(fortune)||fortune<0||!Number.isFinite(discount)||discount<0||discount>100){
-  for(const id of ['forumEventCost','forumShortfall','forumBank','forumWithoutEvent','forumShare','forumSaved'])$(id).textContent='Invalid value';return;
+  for(const id of ['forumEventCost','forumShortfall','forumBank'])$(id).textContent='Invalid value';return;
  }
  // Round UP the gold needed for an upgrade to avoid understating the target.
  const eventCost=Math.ceil(price*(100-discount)/100);
- const missing=Math.max(0,eventCost-fortune),without=Math.max(0,price-fortune);
+ const missing=Math.max(0,eventCost-fortune);
  const pct=eventCost>0?Math.min(100,fortune/eventCost*100):100;
- const active=store.members.length;
- for(const [id,v] of [['forumEventCost',eventCost],['forumShortfall',missing],['forumBank',fortune],['forumWithoutEvent',without],['forumSaved',price-eventCost],['forumShare',active?Math.ceil(missing/active):0]])$(id).textContent=fmt(v)+' gold';
+ for(const [id,v] of [['forumEventCost',eventCost],['forumShortfall',missing],['forumBank',fortune]])$(id).textContent=fmt(v)+' gold';
  $('bankSnapshot').textContent=fmt(fortune)+' gold';$('forumPercent').textContent=pct.toFixed(1)+'%';$('forumProgress').setAttribute('aria-valuenow',String(Math.round(pct)));$('forumProgressBar').style.width=pct+'%';
  try{localStorage.setItem(forumGoalKey,JSON.stringify({price:String(price),fortune:String(fortune),discount:String(discount)}));}catch{}
 }
