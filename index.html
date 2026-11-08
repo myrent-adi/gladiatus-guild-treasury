@@ -132,6 +132,9 @@ body{overflow-x:hidden}
  #guildLeaderboardTable td:nth-child(4){grid-column:2;grid-row:3;text-align:left}
  #guildLeaderboardTable td:nth-child(5){grid-column:2;grid-row:4;text-align:left}
 }
+
+/* Requested streamlined view: hide duplicate bank overview and bank fee history panels. */
+#bankOverview, #bankCommissionHistoryPanel { display: none !important; }
 </style>
 <!-- Static edition: no database, no external credentials. -->
 </head>
@@ -166,7 +169,7 @@ body{overflow-x:hidden}
 </aside><div>
 <section class="box"><div class="toolbar"><h2>Guild Donation Leaderboard</h2><input id="search" type="search" placeholder="Search gladiators..." aria-label="Search gladiators"></div><div class="scroll"><table id="guildLeaderboardTable"><thead><tr><th>Rank</th><th>Gladiator</th><th>Guild Rank</th><th>Total Gold</th><th>Donations</th></tr></thead><tbody id="leaderboard"></tbody></table></div><div class="empty" id="emptyMembers" hidden>No members have been added yet.</div></section>
 <section class="box" id="bankOverview"><h2>🏦 Guild Bank · Separate Accounting</h2><div class="bank-metrics"><div><small>Current in-game guild bank (manual snapshot)</small><strong id="bankSnapshot">0</strong></div><div><small>Total recorded bank commission income</small><strong id="bankFeeTotal">0</strong></div></div><div class="bank-note">The bank balance is entered from Gladiatus in <b>Current guild fortune in game</b> above. Fee income and player donations are tracked separately. Neither is added to that balance automatically, because the in-game balance may already include both. This avoids double-counting.</div></section>
-<section class="box"><div class="toolbar"><h2>Bank Commission History</h2></div><div id="feeHistory"></div><div class="empty" id="emptyFees" hidden>No bank fee income recorded yet.</div></section>
+<section class="box" id="bankCommissionHistoryPanel"><div class="toolbar"><h2>Bank Commission History</h2></div><div id="feeHistory"></div><div class="empty" id="emptyFees" hidden>No bank fee income recorded yet.</div></section>
 <section class="box"><div class="toolbar"><h2>Donation History</h2><select id="filterMember" aria-label="Filter donation history"><option value="">All gladiators</option></select></div><div id="history"></div><div id="emptyHistory" class="empty" hidden>No donations recorded yet.</div></section>
 </div></main><footer>Fan-made Gladiatus guild ledger · Local changes are private until the published file is updated · Not affiliated with Gameforge</footer>
 </div>
