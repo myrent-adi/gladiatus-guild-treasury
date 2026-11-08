@@ -1,36 +1,49 @@
-# Gladiatus Guild Treasury · Shared donations without a database
+# Gladiatus -Empire- [T-H-E] — Direct on-page donations (no Supabase)
 
-Official location: https://myrent-adi.github.io/gladiatus-guild-treasury/
+Visitors enter donations **directly on the Gladiatus website**, not through GitHub Issues. The public leaderboard aggregates your existing 33 donation records with **approved** new entries from a shared Google Sheet. The form can be used from a phone without a GitHub account.
 
-## What this does
+**Important:** GitHub Pages alone cannot synchronize input between browsers. This setup uses Google Sheets + Google Apps Script as a free shared storage service, **not a traditional database**. Google usage limits apply. It has **manual moderation**: new entries appear in the spreadsheet as `Pending`; The.T changes `Pending` to `Approved` to publish them. Unapproved entries do not affect the totals.
 
-- The website displays the 99 active members (excluding RIP rank) and the existing 33 donation records totaling **15,225,244,307 gold**.
-- Guild members submit a **GitHub Issue** using the `Gold donation request` form.
-- The.T (or another trusted **repository collaborator**) verifies the claim and adds the **`approved`** label.
-- GitHub Actions appends the approved request to `data/donations.json` and commits the change.
-- The public site loads the JSON from GitHub's raw content service and updates once every 60 seconds (and when Refresh is clicked). New approved entries may take a little while to propagate through GitHub caching.
-- The same player can have many separate donations. The leaderboard automatically sums them.
-- Forum target uses a manually entered snapshot and does not add historical donations again.
+## 1. Set up the Sheet
 
-## Install (replace current site)
+1. Create a **new Google Sheet** in your Google account, e.g. `Gladiatus Empire Donations`.
+2. Select **Extensions → Apps Script**.
+3. Replace the default script text with all the code from `Code.gs`.
+4. Save the project, select function `setup`, and click **Run** once. Confirm the Google authorization prompts if you trust your own code. This creates the `Donations` tab.
+5. Select **Deploy → New deployment → Web app**.
+6. Select **Execute as: Me**; **Who has access: Anyone**. Click Deploy.
+7. Copy the **Web app URL** ending in `/exec`. Do **not** share access to edit the Google Sheet with members; only you should edit `Status`.
+8. Open `settings.js` in this download and paste the URL into `appsScriptUrl` between the single quotes.
 
-1. Extract this archive.
-2. In the GitHub repository `myrent-adi/gladiatus-guild-treasury`, upload **all** files and folders from the extracted package at the root (replace `index.html`). In particular, keep `.github/ISSUE_TEMPLATE/donation.yml`, `.github/workflows/approve-donation.yml`, `scripts/approve_donation.py`, `data/members.json`, and `data/donations.json` in their corresponding paths.
-3. In **Settings → General → Features**, turn on **Issues**, if off.
-4. In **Settings → Actions → General → Workflow permissions**, select **Read and write permissions** and save. This permits the repository workflow to update only the ledger file. If organization rules prevent this, use a PR-based or manual merge flow instead.
-5. Verify **Actions** are allowed for the repository. GitHub Pages may stay configured as `Deploy from a branch` → `main` → `/(root)`.
-6. In **Issues → Labels**, create a label exactly named `approved` (lowercase) and a label named `donation-request` if they do not exist. Issue forms can create the request label automatically only if it exists.
-7. Visit the website and verify the totals and active roster.
-8. Test: create a donation Issue, then **after verification** apply `approved`. Check the `Approve guild donation` workflow in Actions. Once finished, click Refresh on the website.
+**Security:** Because the form is public, anyone can send a `Pending` submission. You must verify the donations in-game before approving them. Spam is possible, and Google Apps Script usage limits apply. Only the spreadsheet owner/authorized editors should change statuses. Do not put passwords or secret API keys in `settings.js`.
 
-## Important caveats
+## 2. Upload to GitHub Pages
 
-- Anyone with a GitHub account may **submit** an Issue if Issues are public. Only collaborators with permission to manage labels should **approve** a donation.
-- Do **not** give ordinary players write access to the repository or label-management rights.
-- No secrets, GitHub personal access tokens or Supabase keys are used by the webpage. The old `config.js` and `supabase.sql` from the previous version are not needed and can be removed if desired.
-- GitHub Pages is static hosting: updates require GitHub Actions or manual file commits, rather than a true live database. This workflow commits the data, while the page reads its latest approved ledger from raw GitHub content, so it does not rely on GitHub Pages redeploying after bot commits.
-- An existing Issue can be approved **once**; repeated labels cannot double-count it.
-- GitHub Issues are public, so do not enter private information in the request.
-- The `approved` workflow validates the player against the active roster, date and amount before updating.
-- You may need to refresh again because raw.githubusercontent.com can cache files.
-- If a guild member has no GitHub account, The.T can submit a donation Issue for them.
+Upload or replace the following in the **root** of `myrent-adi/gladiatus-guild-treasury`:
+
+- `index.html`
+- `settings.js`
+- `data/members.json`
+- `data/donations.json`
+
+You can leave old `config.js` and `supabase.sql` in the repository; the new website does not use them. The old GitHub Issues workflow is no longer needed.
+
+When GitHub Pages finishes publishing, open `https://myrent-adi.github.io/gladiatus-guild-treasury/` and use Ctrl+F5 to reload.
+
+## 3. What happens when a member submits a donation?
+
+1. Select a **Gladiator**, enter **Donated gold** and a date in **Record a Donation** on the website.
+2. Press **Submit Donation**; the entry is appended to Google Sheets with `Pending` status.
+3. The.T verifies the amount and changes that row's `Status` cell to exactly `Approved`.
+4. All browsers and phones see it in the leaderboard after **Refresh** or an automatic refresh (about once per minute).
+5. Every approved donation for the same player adds to that player's total.
+
+Never add the original 33 donations to the Google Sheet as well; the website already includes them in `data/donations.json`. Adding them again would double-count them.
+
+## Limitations
+
+- This is **manual approval**, not automated proof of in-game payments. There is no connection to Gameforge.
+- Google account is required for the **administrator** to set up and approve donations; guild members need no Google or GitHub login to submit.
+- If Google Apps Script is unavailable or blocked in a user's browser, the form may not submit and new entries may not refresh. Check the Google Sheet to confirm receipt.
+- The static GitHub opening records are preserved. To correct those old entries, edit `data/donations.json`.
+- If you want instant auto-publication without admin approval, you would have to accept a higher risk of fraudulent entries.
